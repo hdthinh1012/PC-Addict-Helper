@@ -1,0 +1,41 @@
+version: '3'
+services:
+  influxdb2:
+    image: influxdb:2
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb2-data:/var/lib/influxdb2
+      - influxdb2-config:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=hdthinh1012
+      - DOCKER_INFLUXDB_INIT_PASSWORD=10122001
+      - DOCKER_INFLUXDB_INIT_ORG=hdthinh1012
+      - DOCKER_INFLUXDB_INIT_BUCKET=PC_ADDICT_HELPER_BUCKET
+  postgres:
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=hdthinh1012
+      - POSTGRES_PASSWORD=10122001
+      - POSTGRES_DB=postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  # nginx:
+  #   image: nginx:stable-alpine
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+  nestjs:
+    build: ./nestjs
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./nestjs:/app
+volumes:
+  influxdb2-data:
+  influxdb2-config:
+  postgres-data:
