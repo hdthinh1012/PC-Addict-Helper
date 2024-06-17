@@ -1,6 +1,7 @@
 version: '3'
 services:
   influxdb2:
+    container_name: influxdb2-dev
     image: influxdb:2
     ports:
       - "8086:8086"
@@ -13,29 +14,73 @@ services:
       - DOCKER_INFLUXDB_INIT_PASSWORD=10122001
       - DOCKER_INFLUXDB_INIT_ORG=hdthinh1012
       - DOCKER_INFLUXDB_INIT_BUCKET=PC_ADDICT_HELPER_BUCKET
+    networks:
+      - backend
   postgres:
+    container_name: postgres-dev
     image: postgres:13
     ports:
       - "5432:5432"
     environment:
       - POSTGRES_USER=hdthinh1012
       - POSTGRES_PASSWORD=10122001
-      - POSTGRES_DB=postgres
+      - POSTGRES_DB=pc_addict_helper_db
     volumes:
       - postgres-data:/var/lib/postgresql/data
-  # nginx:
-  #   image: nginx:stable-alpine
-  #   ports:
-  #     - "80:80"
-  #   volumes:
-  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - backend
   nestjs:
-    build: ./nestjs
-    ports:
-      - "3000:3000"
+    container_name: pc-addict-helper-nestjs-dev
+    image: pc-addict-helper-nestjs-img:dev
+    build:
+      context: ./nestjs
+      dockerfile: Dockerfile.dev
+    environment:
+      - INFLUXDB_URL=http://influxdb2:8086
+      - POSTGRES_URL=postgres://hdthinh1012:10122001@postgres:5432/pc_addict_helper_db
+      - POSTGRES_USER=hdthinh1012
+      - POSTGRES_PASSWORD=10122001
+      - POSTGRES_DB=pc_addict_helper_db
+    # ports:
+    #   - "3000:3000"
     volumes:
       - ./nestjs:/app
+    networks:
+      - backend
+  angular:
+    container_name: pc-addict-helper-angular-dev
+    image: pc-addict-helper-angular-img:dev
+    build:
+      context: ./angular
+      dockerfile: Dockerfile.dev
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./angular:/usr/src/app
+    networks:
+      - frontend
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.dev
+    image: pc-addict-helper-router:dev
+    container_name: pc-addict-helper-router-dev
+    # restart: unless-stopped
+    ports:
+      - 8080:80
+    networks:
+      - backend
+      - frontend
 volumes:
   influxdb2-data:
   influxdb2-config:
   postgres-data:
+
+
+networks:
+  frontend:
+    name: pc-addict-helper-network-frontend
+    driver: bridge
+  backend:
+    name: pc-addict-helper-network-backend
+    driver: bridge
