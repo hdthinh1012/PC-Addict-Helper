@@ -1,0 +1,5 @@
+# Dockerfile.dev
+FROM postgres:13
+
+# Copy the SQL initialization script
+COPY *.sql /docker-entrypoint-initdb.d/
